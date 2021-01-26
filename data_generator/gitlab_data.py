@@ -12,6 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+# THIS FILE IS DEPRECATED. IT SHOULD BE DELETED BEFORE MERGING THIS BRANCH.
 
 import datetime
 import json

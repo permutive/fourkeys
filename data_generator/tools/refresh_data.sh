@@ -17,6 +17,9 @@
 
 set -eo pipefail
 
+# get current execution path
+DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" >/dev/null 2>&1 && pwd )"
+
 if [[ -z "$WEBHOOK" || -z "$SECRET" ]]; then
 echo "Unable to proceed. Please ensure the following environment variables \
 are set: WEBHOOK, SECRET"
@@ -49,15 +52,16 @@ if [[ ${purge_data} == "y" ]]; then
     # drop and recreate the events_raw table
     # (why not delete the data? Because delete may fail due to https://stackoverflow.com/questions/43085896)
     bq query --use_legacy_sql=false "DROP TABLE IF EXISTS ${FOURKEYS_PROJECT}.four_keys.events_raw"
-    bq mk --table -f ${FOURKEYS_PROJECT}:four_keys.events_raw ../../setup/events_raw_schema.json
+    bq mk --table -f ${FOURKEYS_PROJECT}:four_keys.events_raw ${DIR}/../../setup/events_raw_schema.json
 fi
 
 # insert new data
 if [[ ${git_system} == "1" ]]; then
-    python3 ../gitlab_data.py
+    vcs_name="gitlab"
 elif [[ ${git_system} == "2" ]]; then
-    python3 ../github_data.py
+    vcs_name="github"
 fi
+python3 ${DIR}/../generate_data.py --vc_system="$vcs_name"
 
 # run scheduled queries
 for table in changes deployments incidents; do
